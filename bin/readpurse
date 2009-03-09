@@ -1,0 +1,48 @@
+#!/usr/bin/python
+
+# $Id: readpurse 84 2009-02-26 23:08:06Z fpletz $
+# ----------------------------------------------------------------------------
+# "THE MATE-WARE LICENSE"
+# codec <codec@muc.ccc.de> wrote this file. As long as you retain this notice you
+# can do whatever you want with this stuff. If we meet some day, and you think
+# this stuff is worth it, you can buy me a mate in return.
+# ----------------------------------------------------------------------------
+
+import sys
+import time
+import os
+
+import upay.cashier
+
+cashier = upay.cashier.Cashier()
+
+if cashier.isReady():
+    if os.path.getsize(sys.argv[1]) > 100000:
+        print "purse is to big!"
+        cashier.reportBadPurse()
+        sys.exit(1)
+    
+    purse = open(sys.argv[1], 'r')
+    purselines = purse.readlines()
+    print "tokens in purse:",len(purselines)
+    
+    if len(purselines) > 100:
+        print "purse is to big!"
+        cashier.reportBadPurse()
+        sys.exit(1)
+    
+    t = time.time()
+    
+    for token in purselines:
+        cashier.checkToken(token)
+    
+    t = time.time()-t
+    print "%f checks/s"%(50/t)
+    
+    cashier.checkCredit()
+    
+    sys.exit(0)
+else:
+    print "cashier is busy"
+    sys.exit(2)
+

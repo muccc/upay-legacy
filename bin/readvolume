@@ -1,0 +1,43 @@
+#!/bin/bash
+
+#DEVNAME="/dev/sda1"
+BASENAME=`basename $DEVNAME`
+
+echo "mounting $DEVNAME to /media/$BASENAME" | tee -a /tmp/matemat.log
+ret=`mkdir /media/$BASENAME 2>&1`
+echo "retval=$?"
+
+if [ $? != 0 ]; then
+    echo could not create mountpoint: $ret | tee -a /tmp/matemat.log 
+else
+    echo "created mountpoint /media/$BASENAME" | tee -a /tmp/matemat.log
+fi
+
+ret=`mount -o ro $DEVNAME /media/$BASENAME 2>&1`
+
+if [ $? != 0 ]; then
+    echo "mount failed: $ret"| tee -a /tmp/matemat.log 
+else
+    echo "mount succeded" | tee -a /tmp/matemat.log
+
+    if [ -f /media/$BASENAME/purse ]; then
+        echo "reading purse" | tee -a /tmp/matemat.log
+        ret=`readpurse /media/$BASENAME/purse 2>&1`
+        echo "readpurse returned: $ret" | tee -a /tmp/matemat.log
+    else
+        echo "no purse found" | tee -a /tmp/matemat.log
+    fi
+fi
+
+echo "umounting volumes" | tee -a /tmp/matemat.log
+ret=`umount /media/* 2>&1`
+if [ $? != 0 ]; then
+    echo "umount failed: $ret" | tee -a /tmp/matemat.log
+fi
+
+echo "removing mountpoints" | tee -a /tmp/matemat.log
+ret=`rm -rf /media/*`
+if [ $? != 0 ]; then
+    echo "removing mountpoints failed: $ret" | tee -a /tmp/matemat.log
+fi
+

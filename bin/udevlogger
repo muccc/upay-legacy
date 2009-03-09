@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo udev event: ACTION=$ACTION DEVNAME=$DEVNAME >> /tmp/matemat.log
