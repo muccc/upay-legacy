@@ -91,7 +91,6 @@ class Cashier:
     def checkCredit(self):
         sent = self.send("Td")
 
-# "Testing"
 
 if __name__ == '__main__':
     cashier = Cashier()
@@ -100,3 +99,4 @@ if __name__ == '__main__':
     ret = cashier.checkToken("12345678")
     ret = cashier.checkToken("12345678")
     ret = cashier.checkCredit()
+

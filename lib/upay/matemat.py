@@ -9,8 +9,8 @@ class Matemat:
     log = getLogger('Matemat')
 
     def __init__(self):
-        self.interface = serialinterface.SerialInterface("/dev/ttyS0",115200,5)
-        pass
+        self.interface = upay.serialinterface.SerialInterface('/dev/ttyS0',
+                115200, 5)
 
     @flogger(log)
     def _waitForReply(self,reply):

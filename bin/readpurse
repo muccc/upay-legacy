@@ -37,12 +37,12 @@ if cashier.isReady():
         cashier.checkToken(token)
     
     t = time.time()-t
-    print "%f checks/s"%(50/t)
+    print "%f checks/s"%(len(purselines)/t)
     
     cashier.checkCredit()
     
     sys.exit(0)
 else:
-    print "cashier is busy"
+    print "cashier is n/a"
     sys.exit(2)
 

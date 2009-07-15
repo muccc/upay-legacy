@@ -24,6 +24,7 @@ formatter = logging.Formatter(fmt)
 console.setFormatter(formatter)
 getLogger().addHandler(console)
 
+# automatic function invocation logs (decorator)
 def flogger(logger):
     def flogger_f(f):
         def ret(*args, **kwargs):
@@ -33,6 +34,29 @@ def flogger(logger):
     return flogger_f
 
 oldLogger = logging.getLoggerClass()
+
+class NullLogger(oldLogger):
+    def debug(self, *args, **kwargs):
+        pass
+
+    def info(self, *args, **kwargs):
+        pass
+
+    def warning(self, *args, **kwargs):
+        pass
+
+    def error(self, *args, **kwargs):
+        pass
+
+    def critical(self, *args, **kwargs):
+        pass
+
+    def exception(self, *args, **kwargs):
+        pass
+
+    def log(self, *args, **kwargs):
+        pass
+
 
 class MyLogger(oldLogger):
     def _extra_func(self, kwargs):
@@ -69,4 +93,5 @@ class MyLogger(oldLogger):
         oldLogger.log(self, *args, **self._extra_func(kwargs))
 
 logging.setLoggerClass(MyLogger)
+#logging.setLoggerClass(NullLogger)
 

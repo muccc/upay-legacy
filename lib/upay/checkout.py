@@ -12,9 +12,11 @@ import socket
 import sys
 import time
 import threading
+from select import select
 
 import upay.tokens as tokens
-import upay.matemat as matemat
+#import upay.matemat as matemat
+import upay.matemat_sim as matemat
 from upay.logger import flogger, getLogger
 
 class Checkout(threading.Thread):
@@ -28,10 +30,7 @@ class Checkout(threading.Thread):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setblocking(0)
         self.socket.bind(('127.0.0.1', 4444))
-        if test:
-            self.matemat = matemat.FakeMatemat()
-        else:
-            self.matemat = matemat.Matemat()
+        self.matemat = matemat.Matemat()
         
         self.state = self.IDLE
         self.newstate = True
@@ -52,7 +51,7 @@ class Checkout(threading.Thread):
     def checkState(self):
         if self.waiting:
             if time.time() >= self.waiting:
-                self.log.debug('setting state')
+                self.log.debug('setting state ' + str(self.nextstate))
                 self.state = self.nextstate
                 self.newstate = True
                 self.waiting = False
@@ -94,16 +93,17 @@ class Checkout(threading.Thread):
     @flogger(log)
     def run(self):
         self.token = tokens.Token()      #has to be in this thread
-        while(1):
+        while 1:
             self.checkState()
-            if self.fetchCommand():
+            if (self.state == self.IDLE or self.state == self.COUNTING) and \
+                    select([self.socket],[],[]) and self.fetchCommand():
                 if not self.command():
                     self.log.info('command failed')
                     self.send("FAIL")
             self.process()
 
     def process(self):
-        #self.log.debug('processing state %d'%self.state)
+        self.log.debug('processing state %d'%self.state)
         if self.state == self.IDLE:
             self.idle()
         elif self.state == self.COUNTING:
@@ -136,7 +136,7 @@ class Checkout(threading.Thread):
         if self.newstate:
             self.newstate = False
             self.reset()
-        time.sleep(0.1)
+        #time.sleep(0.1)
 
     def abort(self):
         if self.newstate:
