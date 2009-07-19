@@ -14,10 +14,14 @@ import time
 import threading
 from select import select
 
+from upay.config import config
 import upay.tokens as tokens
-#import upay.matemat as matemat
-import upay.matemat_sim as matemat
 from upay.logger import flogger, getLogger
+
+if not config.getboolean('general', 'testing'):
+    import upay.matemat as matemat
+else:
+    import upay.matemat_sim as matemat
 
 class Checkout(threading.Thread):
     IDLE, COUNTING, CHECKING, WAITING, SERVING, CHECKINGSERVE, ABORTING,\
@@ -29,7 +33,8 @@ class Checkout(threading.Thread):
         threading.Thread.__init__(self)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setblocking(0)
-        self.socket.bind(('127.0.0.1', 4444))
+        self.socket.bind((config.get('checkout', 'listen_ip'),
+            config.getint('checkout', 'listen_port')))
         self.matemat = matemat.Matemat()
         
         self.state = self.IDLE

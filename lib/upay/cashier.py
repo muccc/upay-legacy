@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 
 import socket
+from upay.config import config
 from upay.logger import flogger, getLogger
 
 class Cashier:
@@ -17,7 +18,8 @@ class Cashier:
     @flogger(log)
     def __init__(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.socket.connect(('127.0.0.1', 4444))
+        self.socket.connect((config.get('cashier', 'checkout_ip'),
+            config.getint('cashier', 'checkout_port')))
         self.socket.settimeout(1)
         
     @flogger(log)

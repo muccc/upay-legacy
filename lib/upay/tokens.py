@@ -8,10 +8,11 @@
 # this stuff is worth it, you can buy me a mate in return.
 # ----------------------------------------------------------------------------
 
-import sqlite3
+import psycopg2
 import hashlib
 import sys
 
+from upay.config import config
 from upay.logger import flogger, getLogger
 
 class Token:
@@ -21,12 +22,41 @@ class Token:
         self.tokencount = 0
         self.cost = 0
         self.tokenreset = False
-        self.db = sqlite3.connect('token.db')
+        self.db = psycopg2.connect(
+                database=config.get('database', 'db'),
+                host=config.get('database', 'host'),
+                port=config.getint('database', 'port'),
+                user=config.get('database', 'user'),
+                password=config.get('database', 'password'))
         self.db_cur = self.db.cursor()
         self.tokenlist = []
 
+    @flogger(log)
     def bootstrap(self):
-        pass
+        self.db_cur.execute('''
+            DROP TABLE IF EXISTS pricelines;
+            CREATE TABLE pricelines (
+                priceline INT PRIMARY KEY,
+                price INT
+            )
+        ''')
+        self.db_cur.execute('''
+            DROP TABLE IF EXISTS tokens;
+            CREATE TABLE tokens (
+                hash VARCHAR PRIMARY KEY,
+                used DATE NULL,
+                created DATE
+            )
+        ''')
+        self.db_cur.execute('''
+            DROP TABLE IF EXISTS history;
+            CREATE TABLE history (
+                priceline INT,
+                date DATE,
+                UNIQUE (priceline, date)
+            )
+        ''')
+        self.db.commit()
 
     def add(self, token):
         return True 
@@ -54,7 +84,7 @@ class Token:
 
         hashtoken = self.hash(token)
 
-        self.db_cur.execute('SELECT hash FROM tokens WHERE used=0 AND hash=? LIMIT 1', (hashtoken,))
+        self.db_cur.execute('SELECT hash FROM tokens WHERE used=NULL AND hash=%s', (hashtoken,))
         ret = self.db_cur.fetchone()
         self.log.debug('fetch returned %s' % str(ret))
         if ret:
@@ -74,9 +104,14 @@ class Token:
     
     @flogger(log)
     def assets(self, priceline):
-        self.db_cur.execute('SELECT price FROM pricelines WHERE priceline=?', (priceline,))
+        self.db_cur.execute('SELECT price FROM pricelines WHERE priceline=%s', (priceline,))
         price = self.db_cur.fetchone()
         self.log.debug('price=%s' % price)
+        
+        if price is None:
+            self.log.error('Priceline %s not found! o.O' % priceline)
+            return False
+
         self.cost = int(price[0])
         self.log.info('cost=%s' % self.cost)
         
@@ -93,9 +128,9 @@ class Token:
         if self.cost != 2342:
             for token in self.tokenlist:
                 if rejected < self.cost:
-                    self.log.info('Rejecting %s' % token)
+                    self.log.info('Marking %s used' % token)
                     hashtoken = self.hash(token)
-                    self.db.execute('UPDATE tokens SET used=1 WHERE hash=?', (hashtoken,))
+                    self.db.execute('UPDATE tokens SET used=NOW() WHERE hash=%s', (hashtoken,))
                     rejected = rejected+1 
         self.db.commit()
         self.tokenreset = True
@@ -103,11 +138,8 @@ class Token:
 
 if __name__ == '__main__':
     token = Token()
-    token.hash("ppsqmxjdgu")
-    token.hash("ppsqmxjdgu")
-    token.hash("ppsqmxjdgu")
-    token.hash("ppsqmxjdgu")
-    sys.exit(0)
+    token.bootstrap()
+    #token.hash("ppsqmxjdgu")
     token.check("frnzjbcns")
     crd = token.eot()
     ret = token.assets('1')

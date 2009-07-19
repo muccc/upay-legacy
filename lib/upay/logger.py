@@ -12,6 +12,8 @@ import logging
 import inspect
 from logging import getLogger
 
+from upay.config import config
+
 fmt = '%(asctime)s %(levelname)s: %(name)s.%(func)s(): %(message)s'
 logging.basicConfig(level=logging.DEBUG,
                     format=fmt,
@@ -92,6 +94,8 @@ class MyLogger(oldLogger):
     def log(self, *args, **kwargs):
         oldLogger.log(self, *args, **self._extra_func(kwargs))
 
-logging.setLoggerClass(MyLogger)
-#logging.setLoggerClass(NullLogger)
+if config.getboolean('general', 'logging'):
+    logging.setLoggerClass(MyLogger)
+else:
+    logging.setLoggerClass(NullLogger)
 
