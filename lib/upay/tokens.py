@@ -70,8 +70,8 @@ class Token:
         return self.hashlib.hexdigest()
 
     @flogger(log)
-    def check(self, token):
-        if self.tokenreset:
+    def check(self, token, reset=False):
+        if self.tokenreset or reset:
             self.log.info('Resetting in-memory token data')
             self.tokenreset = False
             self.tokencount = 0
@@ -84,7 +84,7 @@ class Token:
 
         hashtoken = self.hash(token)
 
-        self.db_cur.execute('SELECT hash FROM tokens WHERE used=NULL AND hash=%s', (hashtoken,))
+        self.db_cur.execute('SELECT hash FROM tokens WHERE used IS NULL AND hash=%s', (hashtoken,))
         ret = self.db_cur.fetchone()
         self.log.debug('fetch returned %s' % str(ret))
         if ret:

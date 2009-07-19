@@ -1,0 +1,20 @@
+#!/usr/bin/python
+
+import urllib
+import urllib2
+import sys
+
+tokens = file(sys.argv[1]).read().strip()
+
+url = 'http://localhost:4480/token/check'
+values = {'token': tokens}
+
+data = urllib.urlencode(values)
+req = urllib2.Request(url, data)
+response = urllib2.urlopen(req)
+content = response.read()
+
+for tok, valid in zip(tokens.split('\n'), content.split('\n')):
+    if valid == 'True':
+        print tok
+
