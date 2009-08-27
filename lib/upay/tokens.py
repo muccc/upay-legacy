@@ -31,6 +31,11 @@ class Token:
         self.tokenlist = []
 
     @flogger(log)
+    def clear():
+        self.tokenlist = []
+        self.tokencount = 0
+
+    @flogger(log)
     def bootstrap(self):
         self.db_cur.execute('''
             DROP TABLE IF EXISTS pricelines;
@@ -128,8 +133,6 @@ class Token:
         self.db_cur.execute('INSERT INTO history VALUES(%s, NOW())',
                 (priceline,))
         self.db.commit()
-        self.tokencount = 0
-        self.tokenlist = []
         return True
 
 if __name__ == '__main__':

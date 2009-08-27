@@ -41,7 +41,6 @@ class Checkout(threading.Thread):
         while not self.gotPurse:
             self.waitForSocket()
             if not self.processCommand():
-                self.report('aborting...', 3)
                 return
 
         credit = self.token.eot()
@@ -144,6 +143,7 @@ class Checkout(threading.Thread):
             self.idle = True
             self.gotPurse = False
             self.go()
+            self.token.clear()
 
 
 class CheckoutOld(threading.Thread):
