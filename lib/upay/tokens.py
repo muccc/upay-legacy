@@ -31,7 +31,7 @@ class Token:
         self.tokenlist = []
 
     @flogger(log)
-    def clear():
+    def clear(self):
         self.tokenlist = []
         self.tokencount = 0
 
