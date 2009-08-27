@@ -71,7 +71,7 @@ class Checkout(threading.Thread):
             self.report('Enjoy it!')
         else:
             self.log.info('Failed to serve %s' % priceline)
-            report('Failed to serve!', 3)
+            self.report('Failed to serve!', 3)
             return
 
         if not self.matemat.completeserve():
