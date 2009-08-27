@@ -11,6 +11,8 @@
 import psycopg2
 import hashlib
 import sys
+import os
+import time
 
 from upay.config import config
 from upay.logger import flogger, getLogger
@@ -134,6 +136,33 @@ class Token:
                 (priceline,))
         self.db.commit()
         return True
+
+    @flogger(log)
+    def generate(self, amount):
+        tokens = []
+        t = str(int(time.time()))
+
+        for i in range(amount):
+            while 1:
+                h1 = hashlib.sha256()
+                h1.update(os.urandom(256))
+                tok = h1.hexdigest()
+                tok += '%' + t
+
+                h2 = hashlib.sha512()
+                h2.update(tok)
+                tokhash = h2.hexdigest()
+
+                try:
+                    self.db_cur.execute('INSERT INTO tokens VALUES (%s, NULL, NOW())', (tokhash,))
+                except:
+                    continue
+
+                tokens.append(tok)
+                break
+
+        self.db.commit()
+        return tokens
 
 if __name__ == '__main__':
     token = Token()
