@@ -28,15 +28,22 @@ getLogger().addHandler(console)
 
 # automatic function invocation logs (decorator)
 def flogger(logger):
-    def flogger_f(f):
-        def ret(*args, **kwargs):
-            logger.debug('invoked', func=f.func_name)
-            retval = f(*args, **kwargs)
-            logger.debug('returned "%s"' % str(retval),
-                    func=f.func_name)
-            return retval
-        return ret
-    return flogger_f
+    if config.getboolean('general', 'tracing'):
+        def flogger_f(f):
+            def ret(*args, **kwargs):
+                logger.debug('invoked', func=f.func_name)
+                retval = f(*args, **kwargs)
+                logger.debug('returned "%s"' % str(retval),
+                        func=f.func_name)
+                return retval
+            return ret
+        return flogger_f
+    else:
+        def nologger(f):
+            def ret(*args, **kwargs):
+                return f(*args, **kwargs)
+            return ret
+        return nologger
 
 oldLogger = logging.getLoggerClass()
 
