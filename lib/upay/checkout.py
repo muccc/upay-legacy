@@ -124,8 +124,9 @@ class Checkout(threading.Thread):
             self.gotPurse = True
             ret = True
         elif cmd == 'Tc':
-            self.matemat.writeLCD('Reading tokens...')
+            self.report('Reading tokens...')
             self.token.check(data)
+            self.report('Credit: %s' % self.token.tokencount)
             self.send('OK')
             ret = True
 
