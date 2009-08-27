@@ -24,6 +24,129 @@ else:
     import upay.matemat_sim as matemat
 
 class Checkout(threading.Thread):
+    log = getLogger('Checkout')
+
+    @flogger(log)
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #self.sock.setblocking(0)
+        self.sock.bind((config.get('checkout', 'listen_ip'),
+            config.getint('checkout', 'listen_port')))
+        self.matemat = matemat.Matemat()
+
+    @flogger(log)
+    def go(self):
+        self.matemat.writeLCD('OBEY AND CONSUME')
+        while not self.gotPurse:
+            self.waitForSocket()
+            if not self.processCommand():
+                self.report('aborting...', 3)
+                return
+
+        credit = self.token.eot()
+        self.log.debug('credit=%s' % credit)
+        self.report('Credit: %s' % credit)
+
+        priceline = None
+        while 1:
+            if self.checkAbort():
+                return
+
+            priceline = self.matemat.getPriceline()
+            if priceline == -1:
+                self.report('TIMEOUT', 3)
+                return
+            elif priceline != 0:
+                self.log.info('priceline=%s' % priceline)
+                break
+            time.sleep(0.01)
+
+        if not self.token.assets(priceline):
+            self.report('Not enough credits!', 3)
+            return
+        
+        if self.matemat.serve(priceline):
+            self.log.info('Serving %s' % priceline)
+            self.report('Enjoy it!')
+        else:
+            self.log.info('Failed to serve %s' % priceline)
+            report('Failed to serve!', 3)
+            return
+
+        if not self.matemat.completeserve():
+            self.log.info('Failed to complete serve %s' % priceline)
+            self.report('Failed to cserve!', 3)
+        else:
+            self.token.finish(priceline)
+
+    @flogger(log)
+    def report(self, msg, wait=0):
+        self.matemat.writeLCD(msg)
+        if wait != 0:
+            time.sleep(wait)
+    
+    @flogger(log)
+    def waitForSocket(self, timeout=None):
+        r = select([self.sock], [], [], timeout)
+        return len(r[0]) == 1
+
+    @flogger(log)
+    def checkAbort(self):
+        if self.waitForSocket(timeout=0):
+            return self.processCommand(checkAbort=True)
+        return False
+
+    @flogger(log)
+    def processCommand(self, checkAbort=False):
+        data, self.raddr = self.sock.recvfrom(128)
+        data.strip()
+        if len(data) == 0:
+            return
+
+        cmd = data[:2]
+        self.log.info('cmd=%s' % cmd)
+        data = data[2:].strip()
+        self.log.info('data=%s' % data)
+
+        if checkAbort:
+            return cmd == 'Ab'
+
+        ret = False
+        if cmd == 'Rd':
+            if self.idle:
+                self.send('READY')
+                ret = True
+        elif cmd == 'Ab':
+            pass
+        elif cmd == 'Bp':
+            self.matemat.writeLCD('Bad Purse!', 3)
+        elif cmd == 'Td':
+            self.gotPurse = True
+            ret = True
+        elif cmd == 'Tc':
+            self.matemat.writeLCD('Reading tokens...')
+            self.token.check(data)
+            self.send('OK')
+            ret = True
+
+        return ret
+
+    @flogger(log)
+    def send(self, msg):
+        self.log.info('msg=%s' % msg)
+        return self.sock.sendto(msg, self.raddr) == 0
+
+    @flogger(log)
+    def run(self):
+        self.token = tokens.Token()
+        while 1:
+            self.idle = True
+            self.gotPurse = False
+            self.go()
+
+
+class CheckoutOld(threading.Thread):
     IDLE, COUNTING, CHECKING, WAITING, SERVING, CHECKINGSERVE, ABORTING,\
             WAITSTATE, REPORTING = range(9)
     log = getLogger('Checkout')
@@ -236,3 +359,4 @@ if __name__ == '__main__':
     #co.listen()
     co.start()
     co.join()
+

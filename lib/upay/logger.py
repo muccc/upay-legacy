@@ -31,7 +31,10 @@ def flogger(logger):
     def flogger_f(f):
         def ret(*args, **kwargs):
             logger.debug('invoked', func=f.func_name)
-            return f(*args, **kwargs)
+            retval = f(*args, **kwargs)
+            logger.debug('returned "%s"' % str(retval),
+                    func=f.func_name)
+            return retval
         return ret
     return flogger_f
 

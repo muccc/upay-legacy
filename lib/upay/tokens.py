@@ -21,7 +21,6 @@ class Token:
     def __init__(self):
         self.tokencount = 0
         self.cost = 0
-        self.tokenreset = False
         self.db = psycopg2.connect(
                 database=config.get('database', 'db'),
                 host=config.get('database', 'host'),
@@ -71,12 +70,6 @@ class Token:
 
     @flogger(log)
     def check(self, token, reset=False):
-        if self.tokenreset or reset:
-            self.log.info('Resetting in-memory token data')
-            self.tokenreset = False
-            self.tokencount = 0
-            self.tokenlist = []
-        
         if token in self.tokenlist:
             self.log.warning('token already in tokenlist')
             self.log.info('aborting')
@@ -90,7 +83,7 @@ class Token:
         if ret:
             self.log.info('%s is unused' % token)
             # print "FOUND UNUSED TOKEN: %s" % token
-            self.tokencount = self.tokencount+1
+            self.tokencount += 1
             self.tokenlist.append(token)
             return True
         else:
@@ -130,10 +123,13 @@ class Token:
                 if rejected < self.cost:
                     self.log.info('Marking %s used' % token)
                     hashtoken = self.hash(token)
-                    self.db.execute('UPDATE tokens SET used=NOW() WHERE hash=%s', (hashtoken,))
-                    rejected = rejected+1 
+                    self.db_cur.execute('UPDATE tokens SET used=NOW() WHERE hash=%s', (hashtoken,))
+                    rejected = rejected+1
+        self.db_cur.execute('INSERT INTO history VALUES(%s, NOW())',
+                (priceline,))
         self.db.commit()
-        self.tokenreset = True
+        self.tokencount = 0
+        self.tokenlist = []
         return True
 
 if __name__ == '__main__':
