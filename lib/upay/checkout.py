@@ -65,19 +65,20 @@ class Checkout(threading.Thread):
             self.report('Not enough credits!', 3)
             return
         
+        self.token.finish(priceline)
         if self.matemat.serve(priceline):
             self.log.info('Serving %s' % priceline)
             self.report('Enjoy it!')
         else:
             self.log.info('Failed to serve %s' % priceline)
             self.report('Failed to serve!', 3)
+            self.token.rollback(priceline)
             return
 
         if False: #not self.matemat.completeserve():
             self.log.info('Failed to complete serve %s' % priceline)
             self.report('Failed to cserve!', 3)
-        else:
-            self.token.finish(priceline)
+            self.token.rollback(priceline)
 
     @flogger(log)
     def report(self, msg, wait=0):
@@ -124,7 +125,7 @@ class Checkout(threading.Thread):
             self.gotPurse = True
             ret = True
         elif cmd == 'Tc':
-            self.report('Reading tokens...')
+            #self.report('Reading tokens...')
             self.token.check(data)
             self.report('Credit: %s' % self.token.tokencount)
             self.send('OK')

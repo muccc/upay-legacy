@@ -124,18 +124,24 @@ class Token:
 
     @flogger(log)
     def finish(self, priceline):
-        rejected = 0
-        if self.cost != 2342:
-            for token in self.tokenlist:
-                if rejected < self.cost:
-                    self.log.info('Marking %s used' % token)
-                    hashtoken = self.hash(token)
-                    self.db_cur.execute('UPDATE tokens SET used=NOW() WHERE hash=%s', (hashtoken,))
-                    rejected = rejected+1
+        for token in self.tokenlist[:self.cost]:
+            self.log.info('Marking %s used' % token)
+            hashtoken = self.hash(token)
+            self.db_cur.execute('UPDATE tokens SET used=NOW() WHERE hash=%s', (hashtoken,))
         self.db_cur.execute('INSERT INTO history VALUES(%s, NOW())',
                 (priceline,))
         self.db.commit()
         return True
+
+    @flogger(log)
+    def rollback(self, priceline):
+        self.log.info('Rolling back transaction...')
+        for token in self.tokenlist[:self.cost]:
+            self.log.info('Unmarking %s used' % token)
+            hashtoken = self.hash(token)
+            self.db_cur.execute('UPDATE tokens SET used=NULL WHERE hash=%s', (hashtoken,))
+        # FIXME: history is NOT deleted!
+        self.db.commit()
 
     @flogger(log)
     def generate(self, amount):
