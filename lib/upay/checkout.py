@@ -61,14 +61,15 @@ class Checkout(threading.Thread):
                 break
             time.sleep(0.01)
 
-        if not self.token.assets(priceline):
+        assets = self.token.assets(priceline)
+        if assets == 0:
             self.report('Not enough credits!', 3)
             return
         
         self.token.finish(priceline)
         if self.matemat.serve(priceline):
             self.log.info('Serving %s' % priceline)
-            self.report('Enjoy it!')
+            self.report('%i left! kthxbye' % assets, 3)
         else:
             self.log.info('Failed to serve %s' % priceline)
             self.report('Failed to serve!', 3)
