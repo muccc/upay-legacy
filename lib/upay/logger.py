@@ -15,13 +15,13 @@ from logging import getLogger
 from upay.config import config
 
 fmt = '%(asctime)s %(levelname)s: %(name)s.%(func)s(): %(message)s'
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format=fmt,
                     datefmt='%m-%d %H:%M',
                     filename='/tmp/consumr.log',
                     filemode='w')
 console = logging.StreamHandler()
-console.setLevel(logging.DEBUG)
+console.setLevel(logging.INFO)
 formatter = logging.Formatter(fmt)
 console.setFormatter(formatter)
 getLogger().addHandler(console)
