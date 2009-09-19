@@ -28,7 +28,8 @@ class Token:
                 host=config.get('database', 'host'),
                 port=config.getint('database', 'port'),
                 user=config.get('database', 'user'),
-                password=config.get('database', 'password'))
+                password=config.get('database', 'password'),
+                sslmode='require')
         self.db_cur = self.db.cursor()
         self.tokenlist = []
 
