@@ -1,22 +1,35 @@
 #!/usr/bin/python
 
-import time
+import time, sys
+sys.path.insert(0, '.')
 
 import upay.serialinterface
 from upay.logger import getLogger, flogger
+import Queue, threading
 
-class Matemat:
+class Matemat(threading.Thread):
     log = getLogger('Matemat')
+    messages = Queue.Queue()
 
     def __init__(self):
+        threading.Thread.__init__(self)
         self.interface = upay.serialinterface.SerialInterface('/dev/ttyS0',
                 115200, 5)
+
+    def run(self):
+        while 1:
+            message = self.interface.readMessage()
+
+            self.messages.put(message)
+
+    def getMessage(self):
+        return self.messages.get(block=True)
 
     @flogger(log)
     def _waitForReply(self,reply):
         self.log.debug('reply=%s' % reply)
         while True:
-            msg = self.interface.readMessage()
+            msg = self.getMessage()
             if msg == False:
                 return False
             if msg in reply:
@@ -34,7 +47,7 @@ class Matemat:
     def getPriceline(self):
         self.interface.writeMessage("p")
         while True:
-            msg = self.interface.readMessage()
+            msg = self.getMessage()
             if msg == False:
                 return -1
             if msg[0] == 'p':
@@ -59,7 +72,9 @@ class Matemat:
 # "Testing"
 if __name__ == '__main__':
     m = Matemat()
+    m.start()
     m.writeLCD("luvv")
+    time.sleep(10);
     while m.getPriceline() != 3:
         time.sleep(0.2)
     m.serve(3)

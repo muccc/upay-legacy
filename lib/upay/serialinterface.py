@@ -15,6 +15,7 @@ class SerialInterface:
         self.ser.flushOutput()
         if timeout:
             self.ser.setTimeout(timeout)
+        self.seriallog = open("/tmp/seriallog","w");
 
     def writeMessage(self,message):
         enc = "\\0" + message.replace('\\','\\\\') + "\\1";
@@ -51,7 +52,11 @@ class SerialInterface:
                 start = False
             elif stop:
                 if data[0] == 'D':
+                    message = '%f %s'%(time.time(), data[2:])
                     self.log.info('serial debug message: %d %s'%(len(data), data))
+                    self.seriallog.write(message+"\n")
+                    self.seriallog.flush()
+                    print message
                     data = ""
                     stop = False
                 else:
