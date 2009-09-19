@@ -121,7 +121,7 @@ class Token:
             return self.tokencount - self.cost
         else:
             self.log.info('Liquidity is not given')
-            return 0
+            return -1
 
     @flogger(log)
     def finish(self, priceline):
