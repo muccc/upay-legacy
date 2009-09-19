@@ -14,6 +14,8 @@ import time
 import threading
 from select import select
 
+sys.path.insert(0, '/root/upay/trunk/lib')
+
 from upay.config import config
 import upay.tokens as tokens
 from upay.logger import flogger, getLogger
@@ -309,14 +311,14 @@ class CheckoutOld(threading.Thread):
             self.log.info('Failed to serve %s' % self.priceline)
             self.matemat.writeLCD("Failed to serve")
             served = False;
-            self.setState(self.ABORT,3)
+            self.setState(self.ABORTING,3)
 
     def checkserve(self):
         if not self.matemat.completeserve():
             self.log.info('Failed to serve %s' % self.priceline)
             self.matemat.writeLCD("Failed to serve")
             served = False;
-            self.setState(self.ABORT,3)
+            self.setState(self.ABORTING,3)
         else:
             self.setState(self.IDLE,3)
 
