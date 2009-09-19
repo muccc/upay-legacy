@@ -64,7 +64,7 @@ class Checkout(threading.Thread):
             time.sleep(0.01)
 
         assets = self.token.assets(priceline)
-        if assets == 0:
+        if assets < 0:
             self.report('Not enough credits!', 3)
             return
         
