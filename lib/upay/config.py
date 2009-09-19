@@ -1,5 +1,5 @@
 import ConfigParser
 
 config = ConfigParser.ConfigParser()
-config.read('etc/upay.conf')
+config.read('/root/upay/trunk/etc/upay.conf')
 
