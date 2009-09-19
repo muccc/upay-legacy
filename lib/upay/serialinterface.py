@@ -56,7 +56,7 @@ class SerialInterface:
                     self.log.info('serial debug message: %d %s'%(len(data), data))
                     self.seriallog.write(message+"\n")
                     self.seriallog.flush()
-                    print message
+                    #print message
                     data = ""
                     stop = False
                 else:
