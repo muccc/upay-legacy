@@ -123,7 +123,7 @@ class Checkout(threading.Thread):
         elif cmd == 'Ab':
             pass
         elif cmd == 'Bp':
-            self.matemat.writeLCD('Bad Purse!', 3)
+            self.report('Bad Purse!', 3)
         elif cmd == 'Td':
             self.gotPurse = True
             ret = True
