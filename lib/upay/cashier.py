@@ -61,8 +61,11 @@ class Cashier:
             return False
 
     @flogger(log)
-    def reportBadPurse(self):
-        sent = self.send("Bp")
+    def reportBadPurse(self, message = None):
+        if message:
+            sent = self.send("Bp%s" % message)
+        else:
+            sent = self.send("Bp")
 
     @flogger(log)
     def abort(self):
@@ -92,6 +95,10 @@ class Cashier:
     @flogger(log)
     def checkCredit(self):
         sent = self.send("Td")
+
+    @flogger(log)
+    def display(self, message):
+        sent = self.send("Dm%s" % message)
 
 
 if __name__ == '__main__':

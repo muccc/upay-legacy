@@ -123,7 +123,10 @@ class Checkout(threading.Thread):
         elif cmd == 'Ab':
             pass
         elif cmd == 'Bp':
-            self.report('Bad Purse!', 3)
+            if len(data) == 0:
+                self.report('ERR: Bad Purse!', 3)
+            else:
+                self.report('ERR: %s' % data[:15], 3)
         elif cmd == 'Td':
             self.gotPurse = True
             ret = True
@@ -133,6 +136,8 @@ class Checkout(threading.Thread):
             self.report('Credit: %s' % self.token.tokencount)
             self.send('OK')
             ret = True
+        elif cmd == 'Dm':
+            self.report(data[:20], 3)
 
         return ret
 

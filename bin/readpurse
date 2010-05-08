@@ -19,7 +19,7 @@ cashier = upay.cashier.Cashier()
 if cashier.isReady():
     if os.path.getsize(sys.argv[1]) > 100000:
         print "purse is to big!"
-        cashier.reportBadPurse()
+        cashier.reportBadPurse("Purse is to big!")
         sys.exit(1)
     
     purse = open(sys.argv[1], 'r')
@@ -27,8 +27,8 @@ if cashier.isReady():
     print "tokens in purse:",len(purselines)
     
     if len(purselines) > 100:
-        print "purse is to big!"
-        cashier.reportBadPurse()
+        print "too many tokens in purse!"
+        cashier.reportBadPurse("too many tokens!")
         sys.exit(1)
     
     t = time.time()
