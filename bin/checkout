@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+import upay.checkout
+
+co = upay.checkout.Checkout()
+#co.listen()
+co.start()
+co.join()
