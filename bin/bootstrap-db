@@ -1,0 +1,6 @@
+#!/usr/bin/env python
+from upay.tokens import Token
+
+token = Token()
+token.bootstrap()
+
