@@ -59,7 +59,7 @@ class Token:
             DROP TABLE IF EXISTS history;
             CREATE TABLE history (
                 priceline INT,
-                date DATE,
+                date timestamp with time zone,
                 UNIQUE (priceline, date)
             )
         ''')
